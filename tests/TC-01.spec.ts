@@ -6,6 +6,7 @@ import { ProductPage } from "../pages/product-page";
 import { CartPage } from "../pages/cart-page";
 import { CheckOutPage } from "../pages/checkout-page";
 import { BillingDetails } from "../models/billing-detail";
+import { OrderPage } from "../pages/order-page";
 
 test("Verify users can buy an item successfully", async ({ page }) => {
   //Precondition: Register a valid account
@@ -85,4 +86,12 @@ test("Verify users can buy an item successfully", async ({ page }) => {
   await homePage.verifyPageUrl(/.*order-received.*/);
 
   //18. Verify the Order details with billing and item information
+  const orderPage = new OrderPage(page);
+  await orderPage.verifyOrderDetails(
+    billingDetail,
+    await chkOutPage.getOrderedProduct(),
+    await chkOutPage.getOrderedQuantity(),
+    (await chkOutPage.getTotalPrice()).toString(),
+    defaultMethod
+  );
 });

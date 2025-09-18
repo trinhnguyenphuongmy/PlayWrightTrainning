@@ -3,27 +3,33 @@ import { BillingDetails } from "../models/billing-detail";
 
 export class CheckOutPage {
   private page: Page;
-  private orderedProduct: String;
-  private totalPrice: String;
+  private orderedProduct: string;
+  private orderedQuantity: number;
+  private totalPrice: string;
 
   constructor(page: Page) {
     this.page = page;
     this.orderedProduct = "";
+    this.orderedQuantity = 0;
     this.totalPrice = "";
   }
 
   // High-level Actions
-  async getOrderedProduct(): Promise<String> {
+  async getOrderedProduct(): Promise<string> {
     return this.orderedProduct;
   }
 
-  async getTotalPrice(): Promise<String> {
+  async getOrderedQuantity(): Promise<number> {
+    return this.orderedQuantity;
+  }
+
+  async getTotalPrice(): Promise<string> {
     return this.totalPrice;
   }
 
   async verifyOrderDetails(
-    itemName: String,
-    itemPrice: String,
+    itemName: string,
+    itemPrice: string,
     itemQuantity: number
   ): Promise<void> {
     let itemDetail = itemName + " × " + itemQuantity;
@@ -59,6 +65,7 @@ export class CheckOutPage {
       regex
     );
     this.orderedProduct = itemName;
+    this.orderedQuantity = itemQuantity;
     this.totalPrice = itemTotalPrice;
   }
 

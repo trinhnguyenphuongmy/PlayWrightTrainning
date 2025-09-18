@@ -22,6 +22,15 @@ export class HomePage {
       .click();
   }
 
+  async selectPage(pageName: string): Promise<void> {
+    await this.page.waitForLoadState("domcontentloaded");
+    await this.page
+      .locator("#menu-main-menu-1")
+      .getByRole("link", { name: pageName })
+      .click();
+    await this.verifyNavigationByCheckPageTitle(pageName);
+  }
+
   async navigateTo(pageName: string): Promise<void> {
     await this.page.waitForLoadState("domcontentloaded");
     const menu = await this.page.locator('[class*="-menu-toggle"]');

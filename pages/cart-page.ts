@@ -1,4 +1,6 @@
 import { Page, expect } from "@playwright/test";
+import { Product } from "../models/product";
+import * as assistant from "../utils/common";
 
 export class CartPage {
   private page: Page;
@@ -8,8 +10,12 @@ export class CartPage {
   }
 
   // High-level Actions
+  async clickButton(buttonName: string): Promise<void> {
+    await this.page.getByRole("link", { name: buttonName }).click();
+  }
+
   async checkOut(): Promise<void> {
-    await this.page.getByRole("link", { name: "2 Checkout" }).click();
+    await this.clickButton("2 Checkout");
   }
 
   async verifyProductDetails(
@@ -37,6 +43,8 @@ export class CartPage {
       trimmedName
     );
 
+    await assistant.thinking(this.page, 5);
+
     // Assert the product price and quantity contain the expected values
     await expect(newItem.locator(".product-price")).toContainText(
       `${itemPrice}`
@@ -53,5 +61,15 @@ export class CartPage {
     await expect(newItem.locator(".product-subtotal")).toContainText(
       `$${subTotal.toFixed(2)}`
     );
+  }
+
+  async verifyAllSelectedItems(selectedList: Product[]): Promise<void> {
+    for (const product of selectedList) {
+      await this.verifyProductDetails(
+        product.getName(),
+        product.getPrice(),
+        product.getQuantity()
+      );
+    }
   }
 }

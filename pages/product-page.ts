@@ -1,4 +1,5 @@
 import { Page, expect } from "@playwright/test";
+import { Product } from "../models/product";
 import * as assistant from "../utils/common";
 
 export class ProductPage {
@@ -44,7 +45,7 @@ export class ProductPage {
     price: string | null;
     quantity: number;
   }> {
-    const products = this.page.locator(".products-list .product");
+    const products = this.page.locator(".products .product");
     const count = await products.count();
     if (count === 0) {
       throw new Error("No products found!");
@@ -88,5 +89,27 @@ export class ProductPage {
       price: pickedPrice?.trim() ?? null,
       quantity: itemQuantity,
     };
+  }
+
+  async addMultipleProductToCart(numberProduct: number): Promise<Product[]> {
+    const productList: Product[] = [];
+
+    for (let i = 0; i < numberProduct; i++) {
+      const {
+        name: productName,
+        price: productPrice,
+        quantity: productQuantity,
+      } = await this.addRandomProductToCart();
+
+      const newProduct = new Product(
+        productName!,
+        productPrice!,
+        productQuantity
+      );
+
+      productList.push(newProduct);
+    }
+
+    return productList;
   }
 }
