@@ -58,9 +58,9 @@ export class OrderPage {
       day: "numeric",
     });
 
-    /*await expect(this.page.locator("body")).toContainText(
+    await expect(this.page.locator("body")).toContainText(
       `Date: ${formattedDate}`
-    );*/
+    );
     await expect(this.page.locator("body")).toContainText(
       `Email: ${billingDetail.getEmail()}`
     );
