@@ -1,5 +1,5 @@
 import { Page, expect } from "@playwright/test";
-import { BillingDetails } from "../models/billing-detail";
+import { BillingDetails } from "../models";
 import * as assistant from "../utils/common";
 
 export class OrderPage {
@@ -9,16 +9,35 @@ export class OrderPage {
     this.page = page;
   }
 
+  async getOrderNumber(): Promise<string | null> {
+    return await this.page
+      .locator(".woocommerce-order-overview__order strong")
+      .textContent();
+  }
+
+  async getOrderTotalPrice(): Promise<string | null> {
+    return await this.page
+      .locator(".woocommerce-order-overview__total strong")
+      .textContent();
+  }
+
+  async getOrderDate(): Promise<string | null> {
+    return await this.page
+      .locator(".woocommerce-order-overview__date strong")
+      .textContent();
+    //September 20, 2025
+  }
+
   // High-level Actions
   async verifyOrderDetails(
     billingDetail: BillingDetails,
     productName: string,
     productQuantity: number,
-    totalPrice: string,
+    totalPrice: number,
     pickedPaymentMethod: string
   ): Promise<void> {
     await this.verifyOrderMessage(
-      billingDetail,
+      billingDetail.getEmail(),
       totalPrice,
       pickedPaymentMethod
     );
@@ -33,8 +52,8 @@ export class OrderPage {
   }
 
   async verifyOrderMessage(
-    billingDetail: BillingDetails,
-    totalPrice: string,
+    orderEmail: string,
+    totalPrice: number,
     pickedPaymentMethod: string
   ): Promise<void> {
     await assistant.thinking(this.page, 6);
@@ -43,7 +62,7 @@ export class OrderPage {
 
     await pageBody.waitFor({ state: "visible", timeout: 6000 });
 
-    await expect(this.page.locator("body")).toContainText(
+    await expect(this.page.locator(".woocommerce-notice")).toContainText(
       "Thank you. Your order has been received."
     );
 
@@ -53,20 +72,25 @@ export class OrderPage {
 
     const today = new Date();
     const formattedDate = await today.toLocaleDateString("en-US", {
+      timeZone: "UTC",
       year: "numeric",
       month: "long",
       day: "numeric",
     });
 
-    await expect(this.page.locator("body")).toContainText(
-      `Date: ${formattedDate}`
-    );
-    await expect(this.page.locator("body")).toContainText(
-      `Email: ${billingDetail.getEmail()}`
-    );
-    await expect(this.page.locator("body")).toContainText(
-      "Total: $" + totalPrice
-    );
+    await expect(
+      this.page.locator(".woocommerce-order-overview__date")
+    ).toContainText(`Date: ${formattedDate}`);
+
+    await expect(
+      this.page.locator(".woocommerce-order-overview__email")
+    ).toContainText(`Email: ${orderEmail}`);
+
+    await expect(
+      this.page.locator(
+        ".woocommerce-thankyou-order-details .woocommerce-order-overview__total"
+      )
+    ).toContainText("Total: " + (await assistant.formatPrice(totalPrice)));
     const paymentRow = await this.page.locator(
       '//tr[th[contains(text(), "Payment method:")]]'
     );
@@ -79,7 +103,7 @@ export class OrderPage {
     billingDetail: BillingDetails,
     orderedProduct: string,
     orderedQuantity: number,
-    orderedPrice: string,
+    orderedPrice: number,
     pickedPaymentMethod: string
   ): Promise<void> {
     const row = await this.page

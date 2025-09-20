@@ -11,11 +11,20 @@ export class ProductPage {
 
   // High-level Actions
   async switchToListView(): Promise<void> {
-    await this.page.locator(".switch-list").click();
+    await assistant.waitForPageLoadedCompletely(this.page);
+    const switchList = this.page.locator(".switch-list");
+    await switchList.waitFor({ state: "visible", timeout: 10000 });
+    await switchList.click();
+    await this.expectProductListVisible();
   }
 
   async switchToGridView(): Promise<void> {
-    await this.page.locator(".switch-grid").click();
+    // Wait for the page to be fully loaded
+    await assistant.waitForPageLoadedCompletely(this.page);
+    const switchGrid = this.page.locator(".switch-grid");
+    await switchGrid.waitFor({ state: "visible", timeout: 10000 });
+    await switchGrid.click();
+    await this.expectProductGridVisible();
   }
 
   async expectProductGridVisible(): Promise<void> {
@@ -28,8 +37,52 @@ export class ProductPage {
     await expect(productList).toBeVisible();
   }
 
+  async sortProduct(sortingType: string): Promise<void> {
+    await assistant.waitForPageLoadedCompletely(this.page);
+    await assistant.thinking(this.page, 10);
+    const sortCombobox = this.page.getByRole("combobox", {
+      name: "Shop order",
+    });
+    await sortCombobox.waitFor({ state: "visible", timeout: 6000 });
+    await sortCombobox.selectOption({ label: sortingType });
+  }
+
+  async verifyProductSortedBy(sortingType: string): Promise<void> {
+    const productListLocator = await this.page.locator(
+      ".products .product-type"
+    );
+    const count = await productListLocator.count();
+    const priceArray: number[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const product = productListLocator.nth(i);
+
+      const hasDel = (await product.locator(".price .del").count()) > 0;
+
+      // Use sale price if exists, else regular price
+      let itemPriceText: string;
+      if (hasDel) {
+        itemPriceText = await product.locator(".price .del").innerText();
+      } else {
+        itemPriceText = await product.locator(".price").innerText();
+      }
+
+      const price = parseFloat(itemPriceText.replace(/[^0-9.]/g, ""));
+      priceArray.push(price);
+    }
+
+    // Sort check
+    if (sortingType === "Sort by price: low to high") {
+      expect(await assistant.isSortedAscending(priceArray)).toBe(true);
+    } else if (sortingType === "Sort by price: high to low") {
+      expect(await assistant.isSortedDescending(priceArray)).toBe(true);
+    } else {
+      throw new Error(`Unknown sorting type: ${sortingType}`);
+    }
+  }
+
   async addProductToCartByIndex(index: number): Promise<void> {
-    const products = this.page.locator(".products-list .product");
+    const products = this.page.locator(".products .product");
     const count = await products.count();
     if (index < 0 || index >= count) {
       throw new Error("Index out of bounds");
@@ -40,12 +93,15 @@ export class ProductPage {
       .click({ force: true });
   }
 
-  async addRandomProductToCart(): Promise<{
+  async addRandomProductToCart(addIndex?: number): Promise<{
     name: string | null;
     price: string | null;
     quantity: number;
+    addIndex?: number;
   }> {
     const products = this.page.locator(".products .product");
+
+    await products.first().waitFor({ state: "visible", timeout: 30000 });
     const count = await products.count();
     if (count === 0) {
       throw new Error("No products found!");
@@ -61,7 +117,22 @@ export class ProductPage {
     const pickedName = await randomProduct
       .locator(".product-title")
       .textContent();
-    const pickedPrice = await randomProduct.locator(".price").textContent();
+
+    const priceLocator = randomProduct.locator(".price");
+
+    //Handle for discountPrice if any
+    const hasDiscount = (await priceLocator.locator("ins").count()) > 0;
+
+    let pickedPrice: string;
+
+    if (hasDiscount) {
+      //Get discounted Price
+      pickedPrice =
+        (await priceLocator.locator("ins").textContent())?.trim() || "";
+    } else {
+      //Get original Price
+      pickedPrice = (await priceLocator.textContent())?.trim() || "";
+    }
 
     const itemQuantity = 1;
 
@@ -79,9 +150,11 @@ export class ProductPage {
     await assistant.thinking(this.page, 5);
 
     // Verify the cart quantity is updated
-    await expect(this.page.locator(".et-cart-quantity").first()).toHaveText(
-      itemQuantity.toString()
-    );
+    if (addIndex !== undefined) {
+      await assistant.verifyCartQuantity(this.page, addIndex);
+    } else {
+      await assistant.verifyCartQuantity(this.page, itemQuantity);
+    }
 
     // Return the details of the added product
     return {
@@ -99,7 +172,7 @@ export class ProductPage {
         name: productName,
         price: productPrice,
         quantity: productQuantity,
-      } = await this.addRandomProductToCart();
+      } = await this.addRandomProductToCart(i + 1);
 
       const newProduct = new Product(
         productName!,

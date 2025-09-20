@@ -1,67 +1,66 @@
-//TC-: Verify users can buy multiple item successfully
-import { test, expect } from "@playwright/test";
-import { HomePage } from "../pages/home-page";
-import { RegisterPage } from "../pages/register-page";
-import { ProductPage } from "../pages/product-page";
-import { CartPage } from "../pages/cart-page";
-import { CheckOutPage } from "../pages/checkout-page";
-import { BillingDetails } from "../models/billing-detail";
+//TC-02: Verify users can buy multiple items successfully
+import { test } from "@playwright/test";
+import {
+  HomePage,
+  LoginPage,
+  ProductPage,
+  CartPage,
+  CheckOutPage,
+  OrderPage,
+} from "../pages";
+import { Account } from "../models";
+import * as assistant from "../utils";
+import dotenv from "dotenv";
 
-test("Verify users can buy an item successfully", async ({ page }) => {
+test("Verify users can buy multiple items successfully", async ({ page }) => {
   //Precondition: Register a valid account
   //1.Open browser and go to https://demo.testarchitect.com/
   const homePage = new HomePage(page);
   await homePage.goto();
 
   //2. Login with valid credentials
-  const registerPage = new RegisterPage(page);
-  await registerPage.goto();
-  let firstAccount = await registerPage.registerNewAccount();
+  const loginPage = new LoginPage(page);
+  await loginPage.goto();
+
+  dotenv.config();
+  const email = process.env.TEST_EMAIL!;
+  const password = process.env.TEST_PASSWORD!;
+  let authenAcc = new Account(email, password);
+  await loginPage.login(authenAcc);
+  await assistant.cleanUpCart(page);
 
   //3. Go to Shop page
-  homePage.selectPage("Shop");
+  await assistant.selectPage(page, "Shop");
 
   //4. Select multiple items and add to cart
   const productPage = new ProductPage(page);
   const randomList = await productPage.addMultipleProductToCart(3);
 
   //5. Go to the cart and verify all selected items
-  homePage.goToCart();
+  await assistant.clickCartIcon(page);
   const cartPage = new CartPage(page);
-  cartPage.verifyAllSelectedItems(randomList);
+  await cartPage.verifyAllSelectedItems(randomList);
 
   //6. Proceed to checkout and confirm order
-  await cartPage.clickButton("PROCEED TO CHECKOUT");
+  await cartPage.checkOut();
+  await assistant.verifyNavigationByCheckPageTitle(page, "Checkout");
 
   const chkOutPage = new CheckOutPage(page);
+  await chkOutPage.verifyAllOrderDetails(randomList);
+
+  const defaultMethod = await chkOutPage.getDefaultPaymentMethod();
+
   await chkOutPage.placeOrder();
 
   //7. Verify order confirmation message
+  const orderPage = new OrderPage(page);
 
-  await cartPage.checkOut();
-
-  await homePage.verifyNavigationByCheckPageTitle("Checkout");
-
-  const chkOutPage = new CheckOutPage(page);
-  chkOutPage.verifyOrderDetails(pickedName!, pickedPrice!, pickedQuantity);
-
-  let billingDetail = new BillingDetails(
-    "My",
-    "Trinh",
-    "Vietnam",
-    "253 Hoang Van Thu",
-    "Ho Chi Minh City",
-    "700000",
-    "0909090909",
-    registerPage.getEmail()!,
-    "My Company",
-    "No notes"
+  await orderPage.verifyOrderMessage(
+    authenAcc.getEmail(),
+    await chkOutPage.getTotalPrice(),
+    defaultMethod
   );
-  const defaultMethod = await chkOutPage.getDefaultPaymentMethod();
 
-  await chkOutPage.fillBillingDetails(billingDetail);
-
-  await chkOutPage.placeOrder();
-
-  await homePage.verifyPageUrl(/.*order-received.*/);
+  //Additional VP: All selected items are purchased
+  await assistant.verifyCartQuantity(page, 0);
 });

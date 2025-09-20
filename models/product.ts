@@ -3,10 +3,14 @@ export class Product {
   private productPrice: string;
   private productQuantity: number;
 
-  constructor(name: string, price: string, quantity: number) {
-    this.productName = name;
-    this.productPrice = price;
-    this.productQuantity = quantity;
+  constructor(
+    productName: string,
+    productPrice: string,
+    productQuantity: number
+  ) {
+    this.productName = productName;
+    this.productPrice = productPrice;
+    this.productQuantity = productQuantity;
   }
 
   getName(): string {

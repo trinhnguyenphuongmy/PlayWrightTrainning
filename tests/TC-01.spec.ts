@@ -1,12 +1,15 @@
 //TC-01: Verify users can buy an item successfully
 import { test, expect } from "@playwright/test";
-import { HomePage } from "../pages/home-page";
-import { RegisterPage } from "../pages/register-page";
-import { ProductPage } from "../pages/product-page";
-import { CartPage } from "../pages/cart-page";
-import { CheckOutPage } from "../pages/checkout-page";
-import { BillingDetails } from "../models/billing-detail";
-import { OrderPage } from "../pages/order-page";
+import {
+  HomePage,
+  RegisterPage,
+  ProductPage,
+  CartPage,
+  CheckOutPage,
+  OrderPage,
+} from "../pages";
+import { Product, BillingDetails } from "../models";
+import * as assistant from "../utils";
 
 test("Verify users can buy an item successfully", async ({ page }) => {
   //Precondition: Register a valid account
@@ -42,7 +45,7 @@ test("Verify users can buy an item successfully", async ({ page }) => {
   } = await productPage.addRandomProductToCart();
 
   //10. Go to the cart
-  await homePage.goToCart();
+  await assistant.clickCartIcon(page);
 
   //11. Verify item details in mini content
   const cartPage = new CartPage(page);
@@ -53,14 +56,18 @@ test("Verify users can buy an item successfully", async ({ page }) => {
   );
 
   //12. Click on Checkout
-  await cartPage.checkOut();
+  await assistant.clickButton(page, "2 CHECKOUT");
 
   //13. Verify Checkout page displays
-  await homePage.verifyNavigationByCheckPageTitle("Checkout");
+  await assistant.verifyNavigationByCheckPageTitle(page, "Checkout");
 
   //14. Verify item details in order
   const chkOutPage = new CheckOutPage(page);
-  chkOutPage.verifyOrderDetails(pickedName!, pickedPrice!, pickedQuantity);
+
+  let pickedProduct = new Product(pickedName!, pickedPrice!, pickedQuantity);
+  let addedProduct: Product[] = [];
+  await addedProduct.push(pickedProduct);
+  await chkOutPage.verifyAllOrderDetails(addedProduct);
 
   //15. Fill the billing details with default payment method
   let billingDetail = new BillingDetails(
@@ -83,15 +90,17 @@ test("Verify users can buy an item successfully", async ({ page }) => {
   await chkOutPage.placeOrder();
 
   //17. Verify Order status page displays
-  await homePage.verifyPageUrl(/.*order-received.*/);
+  await assistant.verifyControlExist(page, "3 ORDER STATUS");
 
   //18. Verify the Order details with billing and item information
   const orderPage = new OrderPage(page);
+
+  //VP: Order confirmation message show correctly
   await orderPage.verifyOrderDetails(
     billingDetail,
     await chkOutPage.getOrderedProduct(),
     await chkOutPage.getOrderedQuantity(),
-    (await chkOutPage.getTotalPrice()).toString(),
+    await chkOutPage.getTotalPrice(),
     defaultMethod
   );
 });

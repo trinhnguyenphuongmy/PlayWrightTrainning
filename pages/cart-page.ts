@@ -10,12 +10,9 @@ export class CartPage {
   }
 
   // High-level Actions
-  async clickButton(buttonName: string): Promise<void> {
-    await this.page.getByRole("link", { name: buttonName }).click();
-  }
 
   async checkOut(): Promise<void> {
-    await this.clickButton("2 Checkout");
+    await this.page.getByRole("link", { name: "PROCEED TO CHECKOUT" }).click();
   }
 
   async verifyProductDetails(
@@ -57,19 +54,33 @@ export class CartPage {
     let unitPrice: number = parseFloat(cleanedPrice); // Convert to number
     let subTotal: number = unitPrice * itemQuantity;
 
+    let expectedPrice = await assistant.formatPrice(subTotal);
+
     // Assert the product subtotal contains the expected subtotal
     await expect(newItem.locator(".product-subtotal")).toContainText(
-      `$${subTotal.toFixed(2)}`
+      expectedPrice
     );
   }
 
   async verifyAllSelectedItems(selectedList: Product[]): Promise<void> {
+    const mergedMap: Map<string, { price: string; quantity: number }> =
+      new Map();
+
     for (const product of selectedList) {
-      await this.verifyProductDetails(
-        product.getName(),
-        product.getPrice(),
-        product.getQuantity()
-      );
+      const name = product.getName();
+      const price = product.getPrice();
+      const quantity = product.getQuantity();
+
+      if (mergedMap.has(name)) {
+        const existing = mergedMap.get(name)!;
+        existing.quantity += quantity;
+      } else {
+        mergedMap.set(name, { price, quantity });
+      }
+    }
+
+    for (const [name, { price, quantity }] of mergedMap) {
+      await this.verifyProductDetails(name, price, quantity);
     }
   }
 }

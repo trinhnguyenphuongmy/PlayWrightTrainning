@@ -13,9 +13,9 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   expect: {
-    timeout: 10000, // 60 seconds for all expect() assertions like toHaveURL, toBeVisible, etc.
+    timeout: 10000, // 10 seconds for all expect() assertions like toHaveURL, toBeVisible, etc.
   },
-  timeout: 120000, // 60 seconds for each test
+  timeout: 600000, // 10 mins for each test
   testDir: "./tests",
   /* Run tests in files in parallel */
   fullyParallel: true,

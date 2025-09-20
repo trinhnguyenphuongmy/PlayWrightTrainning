@@ -1,20 +1,26 @@
 import { Page, expect } from "@playwright/test";
 import { BillingDetails } from "../models/billing-detail";
+import { Product } from "../models/product";
+import * as assistant from "../utils/common";
 
 export class CheckOutPage {
   private page: Page;
   private orderedProduct: string;
   private orderedQuantity: number;
-  private totalPrice: string;
+  private totalPrice: number;
 
   constructor(page: Page) {
     this.page = page;
     this.orderedProduct = "";
     this.orderedQuantity = 0;
-    this.totalPrice = "";
+    this.totalPrice = 0;
   }
 
   // High-level Actions
+  async goto(): Promise<void> {
+    await this.page.goto("/checkout");
+  }
+
   async getOrderedProduct(): Promise<string> {
     return this.orderedProduct;
   }
@@ -23,7 +29,7 @@ export class CheckOutPage {
     return this.orderedQuantity;
   }
 
-  async getTotalPrice(): Promise<string> {
+  async getTotalPrice(): Promise<number> {
     return this.totalPrice;
   }
 
@@ -48,25 +54,47 @@ export class CheckOutPage {
     );
 
     // Verify the product total price matches the expected price
-    let itemTotalPrice = (
-      parseFloat(itemPrice.replace(/[^0-9.]/g, "")) * itemQuantity
-    ).toFixed(2);
+    let itemTotalPrice =
+      parseFloat(itemPrice.replace(/[^0-9.]/g, "")) * itemQuantity;
+
     // Create a regex to match the price format, allowing for optional .00
     // Example: $49.99 or $49.00
     // The ^ and $ ensure the entire string matches, and \s* allows for optional whitespace
-    const regex = new RegExp(`^\\s*\\$${itemTotalPrice}(\\.00)?\\s*$`);
-    await expect(productTotalCell).toHaveText(regex);
+    let expectedItemPrice = assistant.formatPrice(itemTotalPrice);
+    await expect(productTotalCell).toContainText(expectedItemPrice);
 
-    await expect(this.page.locator(".cart-subtotal").locator("td")).toHaveText(
-      regex
-    );
-
-    await expect(this.page.locator(".order-total").locator("td")).toHaveText(
-      regex
-    );
     this.orderedProduct = itemName;
     this.orderedQuantity = itemQuantity;
-    this.totalPrice = itemTotalPrice;
+  }
+
+  async verifyOrderSubTotalAndTotalPrice(orderList: Product[]): Promise<void> {
+    let subTotal = 0;
+    for (const order of orderList) {
+      let moneyAmount = parseFloat(order.getPrice().replace(/[^0-9.]/g, ""));
+      subTotal += moneyAmount;
+    }
+
+    this.totalPrice = subTotal;
+    let expectedPrice = assistant.formatPrice(subTotal);
+
+    await expect(
+      this.page.locator(".cart-subtotal").locator("td")
+    ).toContainText(expectedPrice);
+
+    await expect(this.page.locator(".order-total").locator("td")).toContainText(
+      expectedPrice
+    );
+  }
+
+  async verifyAllOrderDetails(orderList: Product[]): Promise<void> {
+    for (const order of orderList) {
+      await this.verifyOrderDetails(
+        order.getName(),
+        order.getPrice(),
+        order.getQuantity()
+      );
+    }
+    await this.verifyOrderSubTotalAndTotalPrice(orderList);
   }
 
   async getDefaultPaymentMethod(): Promise<string> {
@@ -78,6 +106,14 @@ export class CheckOutPage {
       throw new Error("No payment method is selected by default.");
     }
     return defaultMethod;
+  }
+
+  async selectPaymentMethod(targetPayment: string): Promise<void> {
+    const paymentBtn = this.page.getByRole("radio", {
+      name: targetPayment,
+    });
+    await paymentBtn.click();
+    await expect(paymentBtn).toBeChecked();
   }
 
   async fillBillingDetails(billingDetail: BillingDetails): Promise<void> {
@@ -120,5 +156,6 @@ export class CheckOutPage {
 
   async placeOrder(): Promise<void> {
     await this.page.getByRole("button", { name: "Place order" }).click();
+    await assistant.verifyPageUrl(this.page, /.*order-received.*/);
   }
 }
