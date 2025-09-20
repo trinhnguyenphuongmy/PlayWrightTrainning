@@ -67,7 +67,7 @@ test("Verify users can buy an item successfully", async ({ page }) => {
   let pickedProduct = new Product(pickedName!, pickedPrice!, pickedQuantity);
   let addedProduct: Product[] = [];
   await addedProduct.push(pickedProduct);
-  await chkOutPage.verifyAllOrderDetails(addedProduct);
+  await chkOutPage.verifyAllCheckOutDetails(addedProduct);
 
   //15. Fill the billing details with default payment method
   let billingDetail = new BillingDetails(
@@ -78,7 +78,7 @@ test("Verify users can buy an item successfully", async ({ page }) => {
     "Ho Chi Minh City",
     "700000",
     "0909090909",
-    registerPage.getEmail()!,
+    "my.trinh333333@gmail.com",
     "My Company",
     "No notes"
   );
@@ -96,11 +96,12 @@ test("Verify users can buy an item successfully", async ({ page }) => {
   const orderPage = new OrderPage(page);
 
   //VP: Order confirmation message show correctly
-  await orderPage.verifyOrderDetails(
+  await orderPage.verifyAllOrderDetails(
     billingDetail,
     await chkOutPage.getOrderedProduct(),
     await chkOutPage.getOrderedQuantity(),
     await chkOutPage.getTotalPrice(),
     defaultMethod
   );
+  await orderPage.verifyOrderSubTotalAndTotalPrice(addedProduct);
 });

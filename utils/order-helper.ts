@@ -16,8 +16,6 @@ export async function createOrder(page: Page): Promise<Order> {
     quantity: orderQuantity,
   } = await product.addRandomProductToCart();
 
-  //await checkout.verifyOrderDetails(orderName!, orderPrice!, orderQuantity);
-
   await page.goto("/checkout");
   await checkout.placeOrder();
 

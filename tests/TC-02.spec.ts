@@ -43,10 +43,9 @@ test("Verify users can buy multiple items successfully", async ({ page }) => {
 
   //6. Proceed to checkout and confirm order
   await cartPage.checkOut();
-  await assistant.verifyNavigationByCheckPageTitle(page, "Checkout");
 
   const chkOutPage = new CheckOutPage(page);
-  await chkOutPage.verifyAllOrderDetails(randomList);
+  await chkOutPage.verifyAllCheckOutDetails(randomList);
 
   const defaultMethod = await chkOutPage.getDefaultPaymentMethod();
 
@@ -56,8 +55,8 @@ test("Verify users can buy multiple items successfully", async ({ page }) => {
   const orderPage = new OrderPage(page);
 
   await orderPage.verifyOrderMessage(
-    authenAcc.getEmail(),
     await chkOutPage.getTotalPrice(),
+    authenAcc.getEmail(),
     defaultMethod
   );
 

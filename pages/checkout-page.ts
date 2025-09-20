@@ -33,7 +33,7 @@ export class CheckOutPage {
     return this.totalPrice;
   }
 
-  async verifyOrderDetails(
+  async verifyCheckOutDetails(
     itemName: string,
     itemPrice: string,
     itemQuantity: number
@@ -67,7 +67,9 @@ export class CheckOutPage {
     this.orderedQuantity = itemQuantity;
   }
 
-  async verifyOrderSubTotalAndTotalPrice(orderList: Product[]): Promise<void> {
+  async verifyCheckOutSubTotalAndTotalPrice(
+    orderList: Product[]
+  ): Promise<void> {
     let subTotal = 0;
     for (const order of orderList) {
       let moneyAmount = parseFloat(order.getPrice().replace(/[^0-9.]/g, ""));
@@ -86,15 +88,16 @@ export class CheckOutPage {
     );
   }
 
-  async verifyAllOrderDetails(orderList: Product[]): Promise<void> {
+  async verifyAllCheckOutDetails(orderList: Product[]): Promise<void> {
+    await assistant.waitForPageLoadedCompletely(this.page);
     for (const order of orderList) {
-      await this.verifyOrderDetails(
+      await this.verifyCheckOutDetails(
         order.getName(),
         order.getPrice(),
         order.getQuantity()
       );
     }
-    await this.verifyOrderSubTotalAndTotalPrice(orderList);
+    await this.verifyCheckOutSubTotalAndTotalPrice(orderList);
   }
 
   async getDefaultPaymentMethod(): Promise<string> {

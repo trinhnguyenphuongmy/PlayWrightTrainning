@@ -34,6 +34,6 @@ test("Verify orders appear in order history", async ({ page }) => {
   // 3. Verify order details
   //VP: The orders are displayed in the user’s order history
   const recentOrder = new MyAccountPage(page);
-  await recentOrder.verifyOrderDetail(order1);
-  await recentOrder.verifyOrderDetail(order2);
+  await recentOrder.verifyRecentOrderDetail(order1);
+  await recentOrder.verifyRecentOrderDetail(order2);
 });

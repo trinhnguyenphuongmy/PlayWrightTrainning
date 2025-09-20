@@ -60,8 +60,8 @@ test("Verify users can buy an item using different payment methods (all payment 
     // 7. Complete the payment process
     let pickedProduct = new Product(pickedName!, pickedPrice!, pickedQuantity);
     let addedProduct: Product[] = [];
-    await addedProduct.push(pickedProduct);
-    await chkOutPage.verifyAllOrderDetails(addedProduct);
+    addedProduct.push(pickedProduct);
+    await chkOutPage.verifyAllCheckOutDetails(addedProduct);
     await chkOutPage.placeOrder();
 
     // 8. Verify order confirmation message
@@ -69,8 +69,8 @@ test("Verify users can buy an item using different payment methods (all payment 
 
     //VP: Payment is processed successfully for each available method
     await orderPage.verifyOrderMessage(
-      authenAcc.getEmail(),
       await chkOutPage.getTotalPrice(),
+      authenAcc.getEmail(),
       method
     );
 

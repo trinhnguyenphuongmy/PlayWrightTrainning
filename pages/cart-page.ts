@@ -10,9 +10,9 @@ export class CartPage {
   }
 
   // High-level Actions
-
   async checkOut(): Promise<void> {
     await this.page.getByRole("link", { name: "PROCEED TO CHECKOUT" }).click();
+    await assistant.verifyNavigationByCheckPageTitle(this.page, "Checkout");
   }
 
   async verifyProductDetails(

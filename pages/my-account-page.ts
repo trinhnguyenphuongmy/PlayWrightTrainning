@@ -9,7 +9,7 @@ export class MyAccountPage {
   }
 
   // High-level Actions
-  async verifyOrderDetail(inputOrder: Order) {
+  async verifyRecentOrderDetail(inputOrder: Order) {
     const orderNumber = inputOrder.getOrderNumber();
     const orderDate = inputOrder.getOrderdate();
     const orderTotal = `${inputOrder.getOrderTotalPrice()} for ${inputOrder.getQuantity()} item`;
