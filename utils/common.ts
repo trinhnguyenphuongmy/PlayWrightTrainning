@@ -1,5 +1,4 @@
 import { Page, expect } from "@playwright/test";
-import { CheckOutPage } from "../pages/checkout-page";
 import * as assistant from "../utils/common";
 
 /**

@@ -1,6 +1,5 @@
 import { Page, expect } from "@playwright/test";
 import { Order } from "../models";
-import * as assistant from "../utils/common";
 
 export class MyAccountPage {
   private page: Page;

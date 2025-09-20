@@ -1,15 +1,7 @@
 import { Page } from "@playwright/test";
-import {
-  HomePage,
-  LoginPage,
-  CartPage,
-  CheckOutPage,
-  ProductPage,
-  OrderPage,
-} from "../pages";
+import { CartPage, CheckOutPage, ProductPage, OrderPage } from "../pages";
 import { Account, Order } from "../models";
 import * as assistant from "../utils";
-import dotenv from "dotenv";
 
 export async function createOrder(page: Page): Promise<Order> {
   await assistant.selectPage(page, "Shop");

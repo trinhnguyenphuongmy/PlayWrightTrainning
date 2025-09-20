@@ -1,7 +1,7 @@
 //TC-05: Verify orders appear in order history
 import { test } from "@playwright/test";
 import { HomePage, LoginPage, MyAccountPage } from "../pages";
-import { Account, Product } from "../models";
+import { Account } from "../models";
 import * as assistant from "../utils";
 import dotenv from "dotenv";
 
@@ -32,6 +32,7 @@ test("Verify orders appear in order history", async ({ page }) => {
   await assistant.clickButton(page, " RECENT ORDERS");
 
   // 3. Verify order details
+  //VP: The orders are displayed in the user’s order history
   const recentOrder = new MyAccountPage(page);
   await recentOrder.verifyOrderDetail(order1);
   await recentOrder.verifyOrderDetail(order2);
