@@ -2,6 +2,7 @@ import { Page, expect } from "@playwright/test";
 import { BillingDetails } from "../models/billing-detail";
 import { Product } from "../models/product";
 import * as assistant from "../utils/common";
+import { each } from "lodash";
 
 export class CheckOutPage {
   private page: Page;
@@ -160,5 +161,48 @@ export class CheckOutPage {
   async placeOrder(): Promise<void> {
     await this.page.getByRole("button", { name: "Place order" }).click();
     await assistant.verifyPageUrl(this.page, /.*order-received.*/);
+  }
+
+  async verifyErrorMessageWhenMissingAllMandantoryFields(): Promise<void> {
+    const expErrMess = `Billing First name is a required field.
+    
+                        Billing Last name is a required field.
+    
+                        Billing Street address is a required field.
+    
+                        Billing Town / City is a required field.
+    
+                        Billing ZIP Code is a required field.
+    
+                        Billing Phone is a required field.
+    
+                        Billing Email address is a required field.`;
+    await expect(this.page.getByRole("alert")).toHaveText(expErrMess);
+  }
+
+  async checkMandatoryFieldHighlighting(targetField: string): Promise<void> {
+    const fieldName = this.page.getByLabel(targetField);
+
+    // Get computed styles (e.g., border color)
+    const fieldBorder = await fieldName.evaluate((el) => {
+      return window.getComputedStyle(el).borderColor;
+    });
+    //Assert that the borders are red (you can adjust the exact color value as needed)
+    expect(fieldBorder).toBe("rgb(198, 40, 40)"); // red
+  }
+
+  async checkAllMandatoryFieldsHighlighting(): Promise<void> {
+    const allMandFields = [
+      "First name",
+      "Last name",
+      "Street address",
+      "Town / City",
+      "ZIP Code",
+      "Phone",
+      "Email address",
+    ];
+    for (const mandField of allMandFields) {
+      await this.checkMandatoryFieldHighlighting(mandField);
+    }
   }
 }

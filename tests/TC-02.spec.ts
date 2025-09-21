@@ -22,10 +22,7 @@ test("Verify users can buy multiple items successfully", async ({ page }) => {
   const loginPage = new LoginPage(page);
   await loginPage.goto();
 
-  dotenv.config();
-  const email = process.env.TEST_EMAIL!;
-  const password = process.env.TEST_PASSWORD!;
-  let authenAcc = new Account(email, password);
+  const authenAcc = await assistant.getAuthenticatedAccount();
   await loginPage.login(authenAcc);
   await assistant.cleanUpCart(page);
 

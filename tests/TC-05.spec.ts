@@ -3,7 +3,6 @@ import { test } from "@playwright/test";
 import { HomePage, LoginPage, MyAccountPage } from "../pages";
 import { Account } from "../models";
 import * as assistant from "../utils";
-import dotenv from "dotenv";
 
 test("Verify orders appear in order history", async ({ page }) => {
   //Precondition: User has placed 02 orders
@@ -13,10 +12,7 @@ test("Verify orders appear in order history", async ({ page }) => {
   const loginPage = new LoginPage(page);
   await loginPage.goto();
 
-  dotenv.config();
-  const email = process.env.TEST_EMAIL!;
-  const password = process.env.TEST_PASSWORD!;
-  let authenAcc = new Account(email, password);
+  const authenAcc = await assistant.getAuthenticatedAccount();
   await loginPage.login(authenAcc);
 
   await assistant.cleanUpCart(page);
@@ -29,7 +25,7 @@ test("Verify orders appear in order history", async ({ page }) => {
   await assistant.verifyNavigationByCheckPageTitle(page, "My Account");
 
   // 2. Click on Orders in left navigation
-  await assistant.clickButton(page, " RECENT ORDERS");
+  await assistant.clickButtonByRole(page, "link", " RECENT ORDERS");
 
   // 3. Verify order details
   //VP: The orders are displayed in the user’s order history

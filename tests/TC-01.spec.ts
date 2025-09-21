@@ -56,7 +56,7 @@ test("Verify users can buy an item successfully", async ({ page }) => {
   );
 
   //12. Click on Checkout
-  await assistant.clickButton(page, "2 CHECKOUT");
+  await assistant.clickButtonByRole(page, "link", "2 CHECKOUT");
 
   //13. Verify Checkout page displays
   await assistant.verifyNavigationByCheckPageTitle(page, "Checkout");

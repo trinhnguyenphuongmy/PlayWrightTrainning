@@ -24,10 +24,7 @@ test("Verify users can buy an item using different payment methods (all payment 
   const loginPage = new LoginPage(page);
   await loginPage.goto();
 
-  dotenv.config();
-  const email = process.env.TEST_EMAIL!;
-  const password = process.env.TEST_PASSWORD!;
-  let authenAcc = new Account(email, password);
+  let authenAcc = await assistant.getAuthenticatedAccount();
   await loginPage.login(authenAcc);
   await assistant.cleanUpCart(page);
 

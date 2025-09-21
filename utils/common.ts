@@ -1,5 +1,16 @@
 import { Page, expect } from "@playwright/test";
+import { Account } from "../models";
 import * as assistant from "../utils/common";
+import dotenv from "dotenv";
+
+type ARIARole =
+  | "button"
+  | "link"
+  | "textbox"
+  | "checkbox"
+  | "radio"
+  | "heading"
+  | "combobox";
 
 /**
  * Simulates a "thinking" delay using Playwright's page.waitForTimeout
@@ -87,9 +98,17 @@ export async function selectPage(page: Page, pageName: string): Promise<void> {
   await assistant.verifyNavigationByCheckPageTitle(page, pageName);
 }
 
-export async function clickButton(
+export async function clickButtonByRole(
   page: Page,
+  buttonRole: ARIARole,
   buttonName: string
 ): Promise<void> {
-  await page.getByRole("link", { name: buttonName }).click();
+  await page.getByRole(buttonRole, { name: buttonName }).click();
+}
+
+export async function getAuthenticatedAccount(): Promise<Account> {
+  dotenv.config();
+  const email = process.env.TEST_EMAIL!;
+  const password = process.env.TEST_PASSWORD!;
+  return new Account(email, password);
 }
