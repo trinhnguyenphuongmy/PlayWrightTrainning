@@ -1,9 +1,7 @@
 //TC-04: Verify users can sort items by price
 import { test } from "@playwright/test";
 import { HomePage, LoginPage, ProductPage } from "../pages";
-import { Account } from "../models";
 import * as assistant from "../utils";
-import dotenv from "dotenv";
 
 test("Verify users can sort items by price", async ({ page }) => {
   //Precondition: Register a valid account

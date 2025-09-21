@@ -8,9 +8,7 @@ import {
   CheckOutPage,
   OrderPage,
 } from "../pages";
-import { Account } from "../models";
 import * as assistant from "../utils";
-import dotenv from "dotenv";
 
 test("Verify users can buy multiple items successfully", async ({ page }) => {
   //Precondition: Register a valid account

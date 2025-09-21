@@ -7,7 +7,7 @@ import {
   CheckOutPage,
   OrderPage,
 } from "../pages";
-import { Account, BillingDetails } from "../models";
+import { BillingDetails } from "../models";
 import * as assistant from "../utils";
 
 test("Verify users try to buy an item without logging in (As a guest)", async ({

@@ -2,7 +2,6 @@ import { Page, expect } from "@playwright/test";
 import { BillingDetails } from "../models/billing-detail";
 import { Product } from "../models/product";
 import * as assistant from "../utils/common";
-import { each } from "lodash";
 
 export class CheckOutPage {
   private page: Page;

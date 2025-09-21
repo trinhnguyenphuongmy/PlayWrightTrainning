@@ -7,9 +7,8 @@ import {
   CheckOutPage,
   OrderPage,
 } from "../pages";
-import { Account, Product } from "../models";
+import { Product } from "../models";
 import * as assistant from "../utils";
-import dotenv from "dotenv";
 
 test("Verify users can buy an item using different payment methods (all payment methods)", async ({
   page,

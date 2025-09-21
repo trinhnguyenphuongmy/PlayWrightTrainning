@@ -1,7 +1,6 @@
 //TC-05: Verify orders appear in order history
 import { test } from "@playwright/test";
 import { HomePage, LoginPage, MyAccountPage } from "../pages";
-import { Account } from "../models";
 import * as assistant from "../utils";
 
 test("Verify orders appear in order history", async ({ page }) => {
